@@ -90,42 +90,87 @@ def min_in_ring(a, b, n):
     """
     return (a - b) % n
 
+def is_russian_letter(char):
+    return 'а' <= char <= 'я' or 'А' <= char <= 'Я'
+
 def cesar_decipher(text):
     syms = [sym for sym in text]
+    b = ""
     for i in range(32):
         a = []
         out = ''
         for j in range(len(syms)):
-            a.append(dict_reverse[min_in_ring(dict[syms[j]], i, 32)])
+            if is_russian_letter(syms[j]):
+                a.append(dict_reverse[min_in_ring(dict[syms[j]], i, 32)])
+            else:
+                a.append(syms[j])
         for h in range(len(a)):
             out += a[h]
-        print(f'{out}, {i}')
-    return 0
+        b += f"k = {i}: {out}\n"
+        print(f'k = {i}: {out}')
+    return b
 
 def cesar_decipher_with_key(text, key):
     syms = [sym for sym in text]
     a = []
     out = ''
     for j in range(len(syms)):
-        a.append(dict_reverse[min_in_ring(dict[syms[j]], key, 32)])
+        if is_russian_letter(syms[j]):
+            a.append(dict_reverse[min_in_ring(dict[syms[j]], key, 32)])
+        else:
+            a.append(syms[j])
     for h in range(len(a)):
         out += a[h]
     print(f'{out}')
-    return 0
+    return out
 
 def cesar_encrypt(text, key):
     syms = [sym for sym in text]
     a = []
     out = ''
     for j in range(len(syms)):
-        a.append(dict_reverse[add_in_ring(dict[syms[j]], key, 32)])
+        if is_russian_letter(syms[j]):
+            a.append(dict_reverse[add_in_ring(dict[syms[j]], key, 32)])
+        else:
+            a.append(syms[j])
     for h in range(len(a)):
         out += a[h]
     print(f'{out}')
     return out
 
-cesar_decipher('шйльфавкж')
-key = int(input())
-text = input()
-out = cesar_encrypt(text, key)
-cesar_decipher_with_key(out, key)
+def main_menu():
+    while True:
+        print("Выберите опцию:")
+        print("1: Дешифровать текст с перебором ключа")
+        print("2: Дешифровать текст с заданным ключом")
+        print("3: Зашифровать текст с заданным ключом")
+        print("4: Выход")
+
+        choice = input("Введите номер опции: ")
+
+        if choice == '1':
+            text = input("Введите текст для дешифровки: ")
+            cd = cesar_decipher(text)
+            with open('output_many.txt', 'w', encoding='utf-8') as file:
+                file.write(cd + '\n')
+
+        elif choice == '2':
+            text = input("Введите текст для дешифровки: ")
+            key = int(input("Введите ключ: "))
+            cesar_decipher_with_key(text, key)
+
+        elif choice == '3':
+            text = input("Введите текст для шифровки: ")
+            key = int(input("Введите ключ: "))
+            ce = cesar_encrypt(text, key)
+            with open('output_one.txt', 'w', encoding='utf-8') as file:
+                file.write(ce + '\n')
+
+        elif choice == '4':
+            print("Выход из программы.")
+            break
+
+        else:
+            print("Неверный ввод. Пожалуйста, попробуйте снова.")
+
+main_menu()
