@@ -93,59 +93,40 @@ def frequency_analysis(sypher_text):
         fa[letter] = round(sypher_text.count(letter)/len(sypher_text), 3)
     return fa
 
-# Функция для дешифрования текста по аффинному шифру
-def decrypt_affine(ciphertext, a_inv, b, m=m_alphabet, num_to_char_map=num_to_char, char_to_num_map=char_to_num):
-    """Расшифровка афинного шифра для заданных a_inv и b."""
-    decrypted = ''
-    for char in ciphertext:
-        if char.lower() in char_to_num_map:
-            y = char_to_num_map[char.lower()]
-            x = (a_inv * (y - b)) % m
-            decrypted_char = num_to_char_map[x]
-            # Сохраняем регистр исходного символа
-            if char.isupper():
-                decrypted += decrypted_char.upper()
-            else:
-                decrypted += decrypted_char
-        else:
-            # Если символ не в алфавите, оставляем его без изменений
-            decrypted += char
-    return decrypted
-
-def Hypotesis(hypo, f1, f2):
-    print('Гипотеза: \n' +
-        ' Ek(' + f1 + ') = ' + hypo[0] + ', Ek(' + f2 + ') = ' + hypo[1] + '\n' +
-        ' или \n' +
-        ' Ek(' + f1 + ') = ' + hypo[1] + ', Ek(' + f2 + ') = ' + hypo[0])
-
 def affine_decryptor(ciphertext):
     F = 'оеаитнсрвлкмдпуяызъбгчйхжюшцщэф'
     fa = frequency_analysis(ciphertext)
     hypo = list(heapq.nlargest(2, fa, key=fa.get))
     
+    result = []
     flag = 1
-    for i in range(len(F)):
-        if flag == 0:
-            break
-            
-        for j in range(i+1, len(F)-i):
+    with open('decrypted_messages.txt', 'a', encoding='utf-8') as file:
+        for i in range(len(F)):
             if flag == 0:
                 break
-            Hypotesis(hypo, F[i], F[j])
-            a, b = system_lin_con(char_to_num[F[i]], char_to_num[hypo[0]], char_to_num[F[j]], char_to_num[hypo[1]], 32)
+                
+            for j in range(i + 1, len(F) - i):
+                if flag == 0:
+                    break
+                a, b = system_lin_con(char_to_num[F[i]], char_to_num[hypo[0]], char_to_num[F[j]], char_to_num[hypo[1]], 32)
     
-            with open('decrypted_messages.txt', 'w', encoding='utf-8') as file:
-                for i in range(len(a)):
+                for k in range(len(a)):
                     if flag == 0:
                         break
-                    if modular_inverse(a[i], 32) == 0:
-                        print('Ключ ' + str(a[i]) + '-' + str(b[i]) + ' не подходит, тк. обратного элемента к ' + str(a[i]) + ' в кольце вычетов по mod 32 не существует')
+                    if modular_inverse(a[k], 32) == 0:
+                        message = f'Ключ {a[k]}-{b[k]} не подходит, тк. обратного элемента к {a[k]} в кольце вычетов по mod 32 не существует\n'
+                        print(message)
+                        file.write(message)
+                        result.append(message)
                     else:
                         open_text = []
                         for letter in ciphertext:
-                            open_text.append( num_to_char[(modular_inverse(a[i], 32) * (char_to_num[letter] - b[i])) % 32] )
-                        print('Ключ: ' + str(a[i]) + '-' + str(b[i]))
-                        print('Открытый текст: ' + ''.join(open_text))
+                            open_text.append(num_to_char[(modular_inverse(a[k], 32) * (char_to_num[letter] - b[k])) % 32])
+                        message = f'Ключ: {a[k]}-{b[k]}\nОткрытый текст: {"".join(open_text)}\n'
+                        print(message)
+                        file.write(message)
+                        result.append(message)
 
-    print("Расшифровка завершена. Результаты сохранены в 'decrypted_messages.txt'.")
-    #return ans
+    result_message = "Расшифровка завершена. Результаты сохранены в 'decrypted_messages.txt'.\n" + ''.join(result)
+    return result_message
+
