@@ -34,7 +34,7 @@ with gr.Blocks() as app:
             eq1_b = gr.Number(label="b")
             eq2_c = gr.Number(label="c")
             eq2_d = gr.Number(label="d")
-            eq_m = gr.Slider(label='m')
+            eq_m = gr.Number(label='m')
             output_sys = gr.Textbox(label="Решения", interactive=False)
         gr.Button("Решить").click(solve_system, inputs=[eq1_a, eq1_b, eq_m, eq2_c, eq2_d], outputs=output_sys)
 
@@ -45,10 +45,6 @@ with gr.Blocks() as app:
 
     with gr.Tab("Дешифрование"):
         ciphertext = gr.Textbox(label="Зашифрованный текст", lines=5)
-        a_dec = gr.Number(label="Ключ a")
-        b_dec = gr.Number(label="Ключ b")
-        eq_m = gr.Slider(label='m')
-        output_dec = gr.Textbox(label="Дешифрованный текст", interactive=False)
-        gr.Button("Дешифровать").click(decrypt_affine, inputs=[ciphertext, a_dec, b_dec, eq_m], outputs=output_dec)
-
+        #output_dec = gr.Textbox(label="Дешифрованный текст", interactive=False)
+        gr.Button("Дешифровать").click(affine_decryptor, inputs=ciphertext)
 app.launch()
