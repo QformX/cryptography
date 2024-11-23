@@ -1,4 +1,5 @@
 from sympy import isprime
+import gradio as gr
 
 alphabet = {
     'А': 10, 'Б': 11, 'В': 12, 'Г': 13, 'Д': 14, 'Е': 15, 'Ж': 16, 'З': 17, 'И': 18, 'Й': 19, 'К': 20,
@@ -77,13 +78,37 @@ def generate_keypair(p, q):
 
     return key_pairs
 
+def generate_keypair_with(p, q, e):
+    n = p * q
+    phi_n = (p - 1) * (q - 1)
+    if phi_n % e != 0 and extended_gcd(e, phi_n)[0] == 1:
+        d = mod_inverse(e, phi_n)
+    else:
+        raise gr.Error('Error: e must be coprime to phi(n) and non-zero.')
+    
+    return ((e, n),(d, n))
+
 def encrypt(message, public_key):
     """Шифрование сообщения с использованием открытого ключа"""
     e, n = public_key
     ciphertext_int = []
+    decrypted_str = ""
     for block in message:
         block = int(block)
         ciphertext_int.append(pow(block, e, n))
+        
+    #for block in ciphertext_int:
+    #    decrypted_str += str(block)
+        
+    #result = ''
+    
+    #for i in range(0, len(decrypted_str), 2):
+    #    num_str = decrypted_str[i:i+2]
+    #    number = int(num_str)
+        
+    #    if number in alphabet_inverse:
+    #        result += alphabet_inverse[number]
+    
     return ciphertext_int
 
 def decrypt(ciphertext, private_key):

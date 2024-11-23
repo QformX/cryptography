@@ -31,14 +31,14 @@ def plot_entropy(text):
         entropy_values.append(entropy)
         weighted_entropy_values.append(weighted_entropy)
 
-    entropy_k_10000, weighted_entropy_k_10000 = k_grams_frequency(text, 10000)
+    entropy_k_10000, weighted_entropy_k_10000 = k_grams_frequency(text, 20)
     
     entropy_values.append(entropy_k_10000)
     weighted_entropy_values.append(weighted_entropy_k_10000)
 
     plt.figure(figsize=(10, 6))
     plt.plot(k_values, weighted_entropy_values[:-1], marker='o', label='Hk(T)/k для k=1 до 5')
-    plt.axhline(y=weighted_entropy_k_10000, color='r', linestyle='--', label='Hk(T)/k для k=10000')
+    plt.axhline(y=weighted_entropy_k_10000, color='r', linestyle='--', label='Hk(T)/k для k=20')
     plt.title('Зависимость Hk(T)/k от k')
     plt.xlabel('k')
     plt.ylabel('Hk(T)/k')
@@ -53,4 +53,4 @@ def plot_entropy(text):
 
 def main(text):
     plot_file, entropy_values, weighted_entropy_values = plot_entropy(text)
-    return plot_file, entropy_values, weighted_entropy_values, entropy_values[-1]
+    return plot_file, entropy_values, weighted_entropy_values, weighted_entropy_values[-1]
