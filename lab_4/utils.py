@@ -1,5 +1,6 @@
-from sympy import isprime
+import random
 import gradio as gr
+import json
 
 alphabet = {
     'А': 10, 'Б': 11, 'В': 12, 'Г': 13, 'Д': 14, 'Е': 15, 'Ж': 16, 'З': 17, 'И': 18, 'Й': 19, 'К': 20,
@@ -22,7 +23,6 @@ def preprocess_text(text):
     text = ''.join(c for c in text if c in russian_alphabet)
     text = text.upper()
     for item in text:
-        print(item)
         code += (str(alphabet[item]))
     return code
 
@@ -37,7 +37,7 @@ def divide_n(code, n):
                 current_block = current_block[:-2]
                 blocks.append(current_block)
                 current_block = last_value
-            else:  
+            else:
                 current_block = current_block[:-1]
                 blocks.append(current_block)
                 current_block = item
@@ -66,15 +66,13 @@ def generate_keypair(p, q):
     n = p * q
     phi_n = (p - 1) * (q - 1)
     key_pairs = []
-    e = 17
     
     while len(key_pairs) < 3:
-        if isprime(e):
-            print(e)
-            if phi_n % e != 0 and extended_gcd(e, phi_n)[0] == 1:
-                d = mod_inverse(e, phi_n)
-                key_pairs.append(((e, n), (d, n)))
-        e += 2
+        e = random.randint(4, phi_n - 1)  # Случайное значение e в интервале (3, (p-1)(q-1))
+        
+        if phi_n % e != 0 and extended_gcd(e, phi_n)[0] == 1:
+            d = mod_inverse(e, phi_n)
+            key_pairs.append(((e, n), (d, n)))
 
     return key_pairs
 
@@ -96,18 +94,6 @@ def encrypt(message, public_key):
     for block in message:
         block = int(block)
         ciphertext_int.append(pow(block, e, n))
-        
-    #for block in ciphertext_int:
-    #    decrypted_str += str(block)
-        
-    #result = ''
-    
-    #for i in range(0, len(decrypted_str), 2):
-    #    num_str = decrypted_str[i:i+2]
-    #    number = int(num_str)
-        
-    #    if number in alphabet_inverse:
-    #        result += alphabet_inverse[number]
     
     return ciphertext_int
 
@@ -133,4 +119,38 @@ def decrypt(ciphertext, private_key):
 
     return result
             
+def save_keys_to_json(keys_list):
+    """Сохраняет ключи в JSON файл в указанном формате."""
+    keys_data = []
+    for index, keys in enumerate(keys_list, start=1):
+        public_key, private_key = keys  # Предполагается, что keys содержит два значения: public_key и private_key
+        e, n = public_key
+        d, _ = private_key
+        keys_data.append({
+            "title": f"{index} ключ",  # Добавляем поле title
+            "key": {                  # Используем вложенный объект для ключей
+                "e": e,
+                "d": d,
+                "n": n
+            }
+        })
+
+    with open("keys.json", "w") as json_file:
+        json.dump(keys_data, json_file, indent=4)
+        
+
+def load_keys_from_json():
+    """Загружает ключи из JSON файла и возвращает словарь, где ключом является title, а значениями - ключи."""
+    try:
+        with open("keys.json", "r") as json_file:
+            keys_data = json.load(json_file)
+            # Создаем словарь, где ключом является title, а значениями - кортежи (e, d, n)
+            return {key['title']: (key['key']['e'], key['key']['d'], key['key']['n']) for key in keys_data}
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
     
+def update_key_options():
+    key_dict = load_keys_from_json()  # Получаем ключи из JSON
+    return key_dict
+        
+

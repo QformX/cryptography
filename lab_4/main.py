@@ -1,53 +1,22 @@
-from utils import *
+from blocks import *
 import gradio as gr
 
-n = 1
-formatted_keys = []
+def update_inputs_enc(selected_key):
+    key = load_keys_from_json()
+    if selected_key in key:
+        e, d, n = key[selected_key]
+        return e, n
+    return None, None
 
-def decrypt_interface(d, n, ciphertext_str):
-    private_key = (d, n)
-    ciphertext = list(map(int, ciphertext_str.strip("[]").split(", ")))
-    print(ciphertext)
-    return decrypt(ciphertext, private_key)
+def update_inputs_dec(selected_key):
+    key = load_keys_from_json()
+    if selected_key in key:
+        e, d, n = key[selected_key]
+        return d, n
+    return None, None
 
-def keys_interface(p, q, e):
-    global formatted_keys
-    formatted_keys.clear()  # Clear previous keys
-
-    gr.Info("Starting the key generation process.")  # Informing user about the process start
-
-    if p is None or q is None:
-        raise gr.Warning("One or more input values are empty. Please enter valid prime numbers.")  # Warning for empty inputs
-
-    try:
-        n = p * q
-        if e != 0:
-            public_key, private_key = generate_keypair_with(p, q, e)
-            e, n = public_key
-            d, _ = private_key
-            formatted_keys.append(f"e = {e}, n = {n}\nd = {d}, n = {n}")
-            gr.Info("Keys successfully generated!")  # Info on successful generation
-        else:
-            key_pairs = generate_keypair(p, q)
-
-            for public_key, private_key in key_pairs:
-                e, n = public_key
-                d, _ = private_key  # Второе значение n не нужно, так как оно одинаково
-                formatted_keys.append(f"e = {e}, n = {n}\nd = {d}, n = {n}")
-
-        return "\n\n".join(formatted_keys)
-
-    except Exception as ex:
-        raise gr.Error(f"An error occurred: {str(ex)}")
-
-def encrypt_interface(e, d, text):
-    preprocessed_text = preprocess_text(text)
-    code_blocks = divide_n(preprocessed_text, n)
-    public_key = (e, d)
-    
-    return encrypt(code_blocks, public_key)
-
-        
+def update_choices():
+    return list(key_dict.keys())      
 
 with gr.Blocks() as demo:
     gr.Markdown("### RSA Encryption and Decryption")
@@ -57,25 +26,54 @@ with gr.Blocks() as demo:
                 p_input = gr.Number(label="Enter prime number p")
                 q_input = gr.Number(label="Enter prime number q")
                 e_input = gr.Number(label="Enter prime number e")
-            generate_button = gr.Button("Generate Keys and Encrypt Message")
+            generate_button = gr.Button("Сгенерировать ключи")
         
             output = gr.Textbox(label="Output")
+            clear_button = gr.Button("Очистить ключи")
             notification = gr.HTML("")
 
         generate_button.click(keys_interface, inputs=[p_input, q_input, e_input], outputs=output)
+        clear_button.click(clear_keys_list)
         
         with gr.Column():
+            key_dict = ["1 ключ", "2 ключ", "3 ключ"] # Изначально загружаем доступные ключи из JSON
+
+            # Добавляем Dropdown для выбора ключей
+            select_keys_enc = gr.Dropdown(
+                label="Выберите ключи",
+                choices=list(key_dict),  # Устанавливаем начальные значения из key_dict
+                value=None,
+            )
+
             with gr.Row():
-                e_input = gr.Number(label="e для открытого ключа")
-                n_input = gr.Number(label="n открытого ключа")
+                e_input = gr.Number(label="e для открытого ключа", interactive=False)
+                n_input = gr.Number(label="n открытого ключа", interactive=False)
                 text = gr.Textbox(label="Исходный текст")
             
             encrypt_button = gr.Button("Зашифровать текст")
             output_encrypt = gr.Textbox(label="Output")
+            copy_button = gr.Button("Скопировать для дешифровки")
             
+
+            # Обработчик изменения выбора в Dropdown
+            select_keys_enc.change(
+                update_inputs_enc, 
+                inputs=select_keys_enc, 
+                outputs=[e_input, n_input]
+            )
+            
+
+            # Обработчик нажатия кнопки шифрования
             encrypt_button.click(encrypt_interface, inputs=[e_input, n_input, text], outputs=output_encrypt)
-            
+        
         with gr.Column():
+            
+            select_keys_dec = gr.Dropdown(
+                label="Выберите ключи",
+                choices=list(key_dict),  # Устанавливаем начальные значения из key_dict
+                value=None,
+            )
+            
             with gr.Row():
                 d_input = gr.Number(label="d для открытого ключа")
                 n_input = gr.Number(label="n открытого ключа")
@@ -83,6 +81,12 @@ with gr.Blocks() as demo:
             
             decrypt_button = gr.Button("Расшифровать текст")
             output_decrypt = gr.Textbox(label="Output")
+            
+            select_keys_dec.change(
+                update_inputs_dec, 
+                inputs=select_keys_dec, 
+                outputs=[d_input, n_input]
+            )
             
             decrypt_button.click(decrypt_interface, inputs=[d_input, n_input, code_blocks], outputs=output_decrypt)
 
