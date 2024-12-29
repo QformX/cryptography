@@ -104,11 +104,13 @@ def process_message(e, n, C):
     if len(primes) != 2:
         return "n должно быть произведением двух простых чисел."
     p, q = primes[0], primes[1]
+    try:
+        # Закрытый ключ
+        d = calculate_private_key(e, p, q)
 
-    # Закрытый ключ
-    d = calculate_private_key(e, p, q)
-
-    # Расшифрование сообщения
-    M = decrypt_message(C, d, n)
+        # Расшифрование сообщения
+        M = decrypt_message(C, d, n)
+    except:
+        return "Что-то пошло не так"
 
     return f"Простые числа: {primes_list}\nБлоки: {blocks_list}\nПринадлежности n: p = {p}, q = {q}\nЗакрытый ключ d = {d}\nРасшифрованное сообщение M = {M}"

@@ -1,5 +1,15 @@
 from math import isqrt
 
+def integer_sqrt(n):
+    x = n
+    while True:
+        y = (x + n // x) >> 1
+        if y < x:
+            x = y
+        else:
+            break
+    return x
+
 def binary_exponentiation(base, exp, mod):
     """
     Эффективный алгоритм быстрого возведения в степень по модулю.
@@ -21,7 +31,7 @@ def baby_step_giant_step(a, b, p):
     message = ""
 
     # Вычисляем k = ⌊√p⌋ + 1
-    k = isqrt(p) + 1
+    k = integer_sqrt(p) + 1
     message += f"Вычислено k = ⌊√{p}⌋ + 1 = {k}\n"
 
     # Построение последовательности y_n = a^(n*k) mod p

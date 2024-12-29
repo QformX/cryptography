@@ -1,6 +1,8 @@
 from utils import *
 import gradio as gr
 
+print(system_lin_con(5,0,6,3,7))
+
 with gr.Blocks() as app:
     
     gr.Markdown("# Алгоритм аффинного шифрования")
@@ -29,13 +31,13 @@ with gr.Blocks() as app:
 
     with gr.Tab("Система сравнений"):
         with gr.Row():
-            eq1_a = gr.Number(label="a")
-            eq1_b = gr.Number(label="b")
-            eq2_c = gr.Number(label="c")
-            eq2_d = gr.Number(label="d")
-            eq_m = gr.Number(label='m')
+            a = gr.Number(label="a")
+            b = gr.Number(label="b")
+            c = gr.Number(label="c")
+            d = gr.Number(label="d")
+            m = gr.Number(label='m')
             output_sys = gr.Textbox(label="Решения", interactive=False)
-        gr.Button("Решить").click(system_lin_con, inputs=[eq1_a, eq1_b, eq_m, eq2_c, eq2_d], outputs=output_sys)
+        gr.Button("Решить").click(system_lin_con, inputs=[a, b, c, d, m], outputs=output_sys)
 
     with gr.Tab("Частотный анализ"):
         text_input = gr.Textbox(label="Шифр-текст", lines=5)

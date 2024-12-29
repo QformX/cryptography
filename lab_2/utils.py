@@ -26,11 +26,12 @@ def extended_gcd(a, b):
 
 # Функция для нахождения обратного элемента
 def modular_inverse(a, m):
+    a =  a % m
     div, u, v = extended_gcd(a, m)
-    if div == 1:
-        u = u % m
-        return u
-    return 0
+    if div != 1:
+        return 0
+    else:
+        return u % m
 
 # Функция для решения сравнения ax ≡ b mod m
 def solve_linear_congruence(a, b, m):
@@ -49,24 +50,12 @@ def solve_linear_congruence(a, b, m):
             x[i] -= m
     return [int(i) for i in x]
 
-def solve_system(a, b, c, d, m):
-    # Приводим систему к x
-    coeff = (a - c) % m
-    rhs = (d - b) % m
-
-    # Находим обратный элемент
-    inv_coeff = modular_inverse(coeff, m) if coeff != 0 else None
-    
-    if coeff == 0:
-        if rhs == 0:
-            return "Бесконечное количество решений"
-        else:
-            return "Нет решений"
-
-    x = (rhs * inv_coeff) % m
-    y = (b - a * x) % m
-
-    return x, y
+def print_beautiful_output(x, y):
+    print("Решения системы линейных конгруэнций:")
+    print("{:<10} {:<10}".format("x", "y"))
+    print("-" * 20)
+    for x_val, y_val in zip(x, y):
+        print("{:<10} {:<10}".format(x_val, y_val))
 
 def system_lin_con(a, b, c, d, mod):
     a_sys = a - c
@@ -84,14 +73,16 @@ def system_lin_con(a, b, c, d, mod):
         y2.append((b - c*x2[i]) % mod)
     x = x1 + x2
     y = y1 + y2
+    print_beautiful_output(x, y)
     return x, y
 
-# Функция для частотного анализа шифр-текста
 def frequency_analysis(sypher_text):
     fa = dict()
     for letter in char_to_num.keys():
-        fa[letter] = round(sypher_text.count(letter)/len(sypher_text), 3)
-    return fa
+        fa[letter] = round(sypher_text.count(letter) / len(sypher_text), 3)
+    # Сортируем словарь по значениям
+    sorted_fa = dict(sorted(fa.items(), key=lambda item: item[1], reverse=True))
+    return sorted_fa
 
 def affine_decryptor(ciphertext):
     F = 'оеаитнсрвлкмдпуяызъбгчйхжюшцщэф'
@@ -121,7 +112,12 @@ def affine_decryptor(ciphertext):
                     else:
                         open_text = []
                         for letter in ciphertext:
-                            open_text.append(num_to_char[(modular_inverse(a[k], 32) * (char_to_num[letter] - b[k])) % 32])
+                            inverse = int(modular_inverse(a[k], 32))
+                            print(type(inverse))
+                            num_value = char_to_num[letter] - b[k]
+                            print(type(num_value))
+                            index = (inverse * num_value) % 32
+                            open_text.append(num_to_char[index])
                         message = f'Ключ: {a[k]}-{b[k]}\nОткрытый текст: {"".join(open_text)}\n'
                         print(message)
                         file.write(message)
